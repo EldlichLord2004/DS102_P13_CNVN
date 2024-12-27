@@ -1,0 +1,28 @@
+gameid,datacompleteness,league,date,teamname,side,result,ban1,ban2,ban3,ban4,ban5,pick1,pick2,pick3,pick4,pick5
+LOLTMNT01_34432,complete,LCS,1/21/2024 23:00,Dignitas,Red,0,Seraphine,Ashe,Kalista,,Nocturne,Lucian,Rumble,Milio,Azir,Xin Zhao
+LOLTMNT01_56909,complete,PCS,2/15/2024 9:10,West Point Esports,Red,1,Rumble,Poppy,Neeko,Nautilus,,Orianna,Xin Zhao,Varus,Udyr,Alistar
+10766-10766_game_1,partial,LPL,2/22/2024 9:30,Rare Atom,Blue,0,Milio,Karma,Tristana,Taliyah,,Ashe,Varus,Aatrox,Orianna,Xin Zhao
+10776-10776_game_2,partial,LPL,2/25/2024 12:28,LNG Esports,Red,0,Udyr,Nautilus,LeBlanc,Poppy,,Kalista,Xin Zhao,Renata Glasc,Taliyah,Aatrox
+10794-10794_game_2,partial,LPL,3/3/2024 12:12,JD Gaming,Blue,1,Senna,Viego,Smolder,Tristana,,Karma,Xin Zhao,Aatrox,Xayah,Renata Glasc
+10890-10890_game_2,partial,LPL,3/10/2024 9:56,Top Esports,Red,1,Kalista,Karma,,Xin Zhao,Volibear,Varus,Maokai,Ahri,Lee Sin,Gnar
+LOLTMNT01_65975,complete,VCS,3/14/2024 14:01,Vikings Esports,Blue,0,,Nautilus,Volibear,Ahri,Taliyah,Kalista,Neeko,Viego,Maokai,Aatrox
+LOLTMNT04_33059,complete,LEC,3/25/2024 16:02,Team Heretics,Blue,0,Rumble,Kalista,Ashe,Twisted Fate,,Vi,Zeri,Annie,Nautilus,Rek'Sai
+LOLTMNT01_80451,complete,LCS,3/31/2024 21:53,FlyQuest,Red,0,Smolder,Volibear,K'Sante,,Rell,Senna,Annie,Tahm Kench,Viego,Gangplank
+11061-11061_game_3,partial,MSI,5/19/2024 11:11,Bilibili Gaming,Blue,1,Aurelion Sol,Corki,Lucian,K'Sante,,Senna,Tahm Kench,Nidalee,Jayce,Jax
+LOLTMNT04_51053,complete,LEC,6/10/2024 18:54,Team Heretics,Blue,0,Twisted Fate,Ivern,Skarner,Rell,,Corki,Rumble,Nautilus,Jhin,Viego
+LOLTMNT01_120034,complete,LLA,6/11/2024 21:58,Isurus,Red,0,Rumble,Ashe,Skarner,Karthus,,Corki,Varus,Nidalee,Braum,Camille
+LOLTMNT03_128816,complete,VCS,7/19/2024 12:16,GAM Esports,Red,1,Rumble,Ashe,Alistar,,Rell,Tristana,Kai'Sa,Karthus,Nautilus,Smolder
+LOLTMNT01_146500,complete,LCS,7/20/2024 20:55,Team Liquid,Red,0,Ashe,Corki,Ezreal,Caitlyn,,Viego,Leona,Ziggs,Renekton,Varus
+LOLTMNT01_156263,complete,VCS,8/2/2024 10:58,MGN Blue Esports,Blue,1,Zyra,Brand,Kalista,,Twisted Fate,Ezreal,Braum,Zeri,Ivern,Rumble
+LOLTMNT02_154368,complete,VCS,8/11/2024 11:08,Vikings Esports,Blue,0,Rumble,Shyvana,Renekton,Lucian,Tristana,Corki,Ziggs,Rell,Kennen,Veigo
+LOLTMNT02_154368,complete,VCS,8/11/2024 11:08,GAM Esports,Red,1,Maokai,Ashe,Leona,Lillia,Brand,Ezreal,Evelynn,Alistar,Zeri,Aurora
+LOLTMNT02_154386,complete,VCS,8/11/2024 12:12,Vikings Esports,Blue,1,Rumble,Shyvana,Aurora,Camille,Jax,Zyra,Zeri,Gnar,Nautilus,Senna
+LOLTMNT02_154386,complete,VCS,8/11/2024 12:12,GAM Esports,Red,0,Maokai,Ashe,Leona,Ziggs,Smolder,Corki,Ezreal,Lillia,Twisted Fate,Alistar
+LOLTMNT02_153880,complete,VCS,8/11/2024 13:12,Vikings Esports,Blue,0,Rumble,Aurora,Shyvana,Camille,Jax,Zyra,Lucian,Gnar,Nautilus,Senna
+LOLTMNT02_153880,complete,VCS,8/11/2024 13:12,GAM Esports,Red,1,Maokai,Ashe,Leona,Zeri,Ziggs,Ezreal,Lillia,Corki,Smolder,Braum
+LOLTMNT02_154432,complete,VCS,8/11/2024 14:10,Vikings Esports,Blue,1,Rumble,Aurora,Shyvana,Nautilus,Rell,Zyra,Zeri,Jax,Caitlyn,Lux
+LOLTMNT02_154432,complete,VCS,8/11/2024 14:10,GAM Esports,Red,0,Maokai,Ashe,Leona,Ziggs,Poppy,Ezreal,Lillia,K'Sante,Braum,Oriana
+LOLTMNT02_154463,complete,VCS,8/11/2024 15:15,GAM Esports,Blue,1,Leona,Zyra,Jax,Caitlyn,Kai'Sa,Shyvana,Lucian,Gnar,Smolder,Alistar
+LOLTMNT02_154463,complete,VCS,8/11/2024 15:15,Vikings Esports,Red,0,Aurora,Rumble,Ashe,Jhin,Nautilus,Zeri,Maokai,Kennen,Ziggs,Rakan
+LOLTMNT03_145472,complete,LCK,9/1/2024 7:11,Dplus KIA,Red,0,Rumble,Lillia,Jhin,Kennen,,Maokai,Nasus,Ezreal,Nautilus,Gangplank
+LOLTMNT05_89019,complete,WLDs,10/4/2024 12:13,Bilibili Gaming,Blue,0,Skarner,Renekton,Kindred,Ziggs,,Orianna,Vi,K'Sante,Jhin,Rell
