@@ -1,10 +1,12 @@
 #Class chứa các hàm phục vụ cho mô hình dự đoán
 
-from sklearn.model_selection import train_test_split, cross_val_score, GridSearchCV
+from sklearn.model_selection import train_test_split, cross_val_score, GridSearchCV, learning_curve
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import LabelEncoder, StandardScaler
 from sklearn.metrics import classification_report, confusion_matrix, accuracy_score
 from sklearn.neural_network import MLPClassifier
+from sklearn.ensemble import StackingClassifier
+from sklearn.linear_model import LogisticRegression
 
 #Models
 import xgboost as xgb
@@ -170,6 +172,15 @@ class DraftBasedPredictor:
                 max_iter=300,
                 random_state=42
             ),
+            #  "Stacking": StackingClassifier(
+            #     estimators=[
+            #         ('rf', RandomForestClassifier(n_estimators=100, random_state=42)),
+            #         ('xgb', xgb.XGBClassifier(n_estimators=100, random_state=42)),
+            #         ('mlp', MLPClassifier(hidden_layer_sizes=(128, 64), activation='relu', solver='adam', alpha=0.001, learning_rate='adaptive', max_iter=300, random_state=42))
+            #     ],
+            #     final_estimator=LogisticRegression(),
+            #     cv=5
+            # ),
             "RandomForest": RandomForestClassifier(
                 n_estimators=200,
                 max_depth=6,
@@ -201,9 +212,48 @@ class DraftBasedPredictor:
             print("\nClassification Report:")
             print(classification_report(y_test, y_pred))
             
+            # Vẽ biểu đồ đánh giá overfitting
+            train_sizes, train_scores, test_scores = learning_curve(
+                pipeline, self.X, self.y, cv=5, scoring='accuracy',
+                n_jobs=-1, train_sizes=np.linspace(0.1, 1.0, 10))
+            train_mean = np.mean(train_scores, axis=1)
+            train_std = np.std(train_scores, axis=1)
+            test_mean = np.mean(test_scores, axis=1)
+            test_std = np.std(test_scores, axis=1)
+            
+            plt.figure()
+            plt.plot(train_sizes, train_mean, 'o-', color="r",
+                     label="Training score")
+            plt.plot(train_sizes, test_mean, 'o-', color="g",
+                     label="Cross-validation score")
+            plt.fill_between(train_sizes, train_mean - train_std,
+                             train_mean + train_std, alpha=0.1, color="r")
+            plt.fill_between(train_sizes, test_mean - test_std,
+                             test_mean + test_std, alpha=0.1, color="g")
+            plt.title(f'Learning Curve for {name}')
+            plt.xlabel('Training Size')
+            plt.ylabel('Accuracy Score')
+            plt.legend(loc="best")
+            plt.grid()
+            plt.show()
+            
         # Find best model
         best_model_name = max(results.items(), key=lambda x: x[1]['accuracy'])[0]
         print(f"\nBest performing model: {best_model_name}")
+        
+        # def create_stacking_model():
+        #     estimators = [
+        #         ('rf',RandomForestClassifier())
+        #         ('xgb',xgb.XGBClassifier())
+        #         ('mlp',MLPClassifier())
+        #     ]
+            
+        #     stacking=StackingClassifier(
+        #         estimators=estimators,
+        #         final_estimator=LogisticRegression(),
+        #         cv=5
+        #     )
+        #     return stacking
         
         # Define hyperparameter grids for each model
         param_grids = {
@@ -215,7 +265,7 @@ class DraftBasedPredictor:
                 'classifier__subsample': [0.8, 0.9, 1.0],
                 'classifier__colsample_bytree': [0.8, 0.9, 1.0]
             },
-           "MLP": {
+            "MLP": {
                 'classifier__hidden_layer_sizes': [
                     (64,32), 
                     (128,64), 
@@ -236,7 +286,18 @@ class DraftBasedPredictor:
                 'classifier__min_samples_split': [2, 5, 10],
                 'classifier__min_samples_leaf': [1, 2, 4],
                 'classifier__max_features': ['sqrt', 'log2']
-            }
+            },
+            # "Stacking": {
+            #     'classifier__rf__n_estimators': [100, 200],
+            #     'classifier__rf__max_depth': [4, 6],
+            #     'classifier__xgb__n_estimators': [100, 200],
+            #     'classifier__xgb__max_depth': [4, 6],
+            #     'classifier__mlp__hidden_layer_sizes': [(128, 64), (64, 32)],
+            #     'classifier__mlp__activation': ['relu', 'tanh'],
+            #     'classifier__mlp__alpha': [0.0001, 0.001],
+            #     'classifier__mlp__learning_rate_init': [0.001, 0.01],
+            #     'classifier__final_estimator__C': [0.1, 1.0]
+            # }
         }
         
         # Fine-tune best model
@@ -246,7 +307,7 @@ class DraftBasedPredictor:
             param_grids[best_model_name],
             cv=5,
             n_jobs=-1,
-            verbose=1,
+            verbose=2,
             scoring='accuracy'
         )
         
