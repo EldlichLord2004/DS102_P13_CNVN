@@ -4,11 +4,11 @@ from sklearn.model_selection import train_test_split, cross_val_score, GridSearc
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import LabelEncoder, StandardScaler
 from sklearn.metrics import classification_report, confusion_matrix, accuracy_score
+from sklearn.neural_network import MLPClassifier
 
 #Models
 import xgboost as xgb
 from sklearn.ensemble import RandomForestClassifier
-import lightgbm as lgb
 
 import matplotlib.pyplot as plt
 import seaborn as sns
@@ -161,10 +161,13 @@ class DraftBasedPredictor:
                 learning_rate=0.1,
                 random_state=42
             ),
-            "LightGBM": lgb.LGBMClassifier(
-                n_estimators=200,
-                max_depth=6,
-                learning_rate=0.1,
+            "MLP": MLPClassifier(
+                hidden_layer_sizes=(128, 64),
+                activation='relu',
+                solver='adam',
+                alpha=0.001,
+                learning_rate='adaptive',
+                max_iter=300,
                 random_state=42
             ),
             "RandomForest": RandomForestClassifier(
@@ -212,13 +215,20 @@ class DraftBasedPredictor:
                 'classifier__subsample': [0.8, 0.9, 1.0],
                 'classifier__colsample_bytree': [0.8, 0.9, 1.0]
             },
-            "LightGBM": {
-                'classifier__n_estimators': [100, 200, 300],
-                'classifier__max_depth': [4, 6, 8],
-                'classifier__learning_rate': [0.01, 0.1, 0.3],
-                'classifier__num_leaves': [31, 50, 70],
-                'classifier__subsample': [0.8, 0.9, 1.0],
-                'classifier__colsample_bytree': [0.8, 0.9, 1.0]
+           "MLP": {
+                'classifier__hidden_layer_sizes': [
+                    (64,32), 
+                    (128,64), 
+                    (256,128),
+                    (128,64,32)
+                ],
+                'classifier__activation': ['relu', 'tanh'],
+                'classifier__alpha': [0.0001, 0.001, 0.01],
+                'classifier__learning_rate_init': [0.001, 0.01],
+                'classifier__batch_size': [32, 64, 128],
+                'classifier__max_iter': [300, 500],
+                'classifier__early_stopping': [True],
+                'classifier__validation_fraction': [0.1]
             },
             "RandomForest": {
                 'classifier__n_estimators': [100, 200, 300],
@@ -259,6 +269,14 @@ class DraftBasedPredictor:
         
         # Plot feature importance for the best model
         self._plot_feature_importance()
+        
+        # Thêm vào sau phần "Initial Model Evaluation"
+        print("\n=== K-fold Cross Validation Results ===")
+        for name, pipeline in pipelines.items():
+            cv_scores = cross_val_score(pipeline, self.X, self.y, cv=5, scoring='accuracy')
+            print(f"\n{name}:")
+            print(f"Mean CV Accuracy: {cv_scores.mean():.4f} (+/- {cv_scores.std() * 2:.4f})")
+            print(f"Individual fold scores: {cv_scores}")
         
         return self.model
 
