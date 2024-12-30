@@ -60,9 +60,8 @@ class DraftBasedPredictor:
             # Overall performance
             'kills', 'deaths', 'assists', 'team kpm', 'ckpm','gspd','gpr','gamelength',
             # Objectives
-            'firstblood', 'firstdragon', 'dragons', 'elementaldrakes',
-            'firstherald', 'heralds', 'firstbaron', 'barons', 'firsttower',
-            'firstmidtower','firsttothreetowers','turretplates',
+            'firstblood', 'dragons', 'elementaldrakes',
+            'firstherald', 'heralds',  'barons','firsttothreetowers',
             # Economy
             'earned gpm','goldat15', 'goldat20', 'goldat25',
             'golddiffat15', 'golddiffat20','golddiffat25', 'xpdiffat20', 'xpdiffat25',
@@ -134,6 +133,74 @@ class DraftBasedPredictor:
         }
         
         return stats
+    
+    def _plot_learning_curves(self, model_name, train_sizes, train_scores, test_scores):
+        """Helper method to plot learning curves"""
+        train_mean = np.mean(train_scores, axis=1)
+        train_std = np.std(train_scores, axis=1)
+        test_mean = np.mean(test_scores, axis=1)
+        test_std = np.std(test_scores, axis=1)
+        
+        plt.figure()
+        plt.plot(train_sizes, train_mean, 'o-', color="r",
+                label="Training score")
+        plt.plot(train_sizes, test_mean, 'o-', color="g",
+                label="Cross-validation score")
+        plt.fill_between(train_sizes, train_mean - train_std,
+                        train_mean + train_std, alpha=0.1, color="r")
+        plt.fill_between(train_sizes, test_mean - test_std,
+                        test_mean + test_std, alpha=0.1, color="g")
+        plt.title(f'Learning Curve for {model_name}')
+        plt.xlabel('Training Size')
+        plt.ylabel('Accuracy Score')
+        plt.legend(loc="best")
+        plt.grid()
+        plt.show()
+    
+    def plot_correlation_heatmap(self, group=None):
+        """Plot correlation heatmap between features, optionally for a specific group of features"""
+        # Define feature groups
+        feature_groups = {
+            'encoded_picks': ['pick1_encoded', 'pick2_encoded', 'pick3_encoded', 'pick4_encoded', 'pick5_encoded'],
+            'historical_performance': ['winrate_pick1', 'winrate_pick2', 'winrate_pick3', 'winrate_pick4', 'winrate_pick5'],
+            'pick_frequency': ['count_pick1', 'count_pick2', 'count_pick3', 'count_pick4', 'count_pick5'],
+            'overall_performance': ['kills', 'deaths', 'assists', 'team kpm', 'ckpm', 'gspd', 'gpr', 'gamelength'],
+            'objectives': ['firstblood', 'firstdragon', 'dragons', 'elementaldrakes', 'firstherald', 'heralds', 'firstbaron', 'barons', 'firsttower', 'firstmidtower', 'firsttothreetowers', 'turretplates'],
+            'economy': ['earned gpm', 'goldat15', 'goldat20', 'goldat25', 'golddiffat15', 'golddiffat20', 'golddiffat25', 'xpdiffat20', 'xpdiffat25'],
+            'vision': ['wardsplaced', 'visionscore', 'wardskilled', 'controlwardsbought'],
+            'farm': ['cspm', 'minionkills', 'monsterkills', 'csat15', 'csdiffat15', 'csat20', 'csdiffat20', 'csat25', 'csdiffat25'],
+            'combat': ['damagetochampions', 'damagetakenperminute', 'damagemitigatedperminute']
+        }
+
+        if group and group in feature_groups:
+            features_to_plot = feature_groups[group] + ['result']
+        else:
+            features_to_plot = self.features + ['result']
+
+        # Filter the dataframe for the features to plot
+        df_to_plot = self.df[features_to_plot].corr()
+
+        # Set up the matplotlib figure
+        plt.figure(figsize=(len(features_to_plot) * 1.2, len(features_to_plot) * 1.2))
+
+        # Create heatmap using seaborn
+        sns.heatmap(
+            df_to_plot,
+            annot=True,
+            fmt=".2f",
+            cmap='RdBu_r',
+            center=0,
+            square=True,
+            cbar_kws={'label': 'Correlation Coefficient'}
+        )
+
+        # Rotate x-axis labels for better readability
+        plt.xticks(rotation=90)
+        plt.yticks(rotation=0)
+
+        plt.title(f'Feature Correlation Heatmap for {group if group else "All Features"}')
+        plt.tight_layout()
+        plt.show()
 
     def train_model(self, test_size: float = 0.2):
         """
@@ -149,6 +216,8 @@ class DraftBasedPredictor:
             random_state=42, 
             stratify=self.y
         )
+        X_train.to_csv("/kaggle/working/training_set.csv")
+        X_test.to_csv("/kaggle/working//testing_set.csv")
         
         print(f"Training features shape: {self.X.shape}")  # In ra để kiểm tra
         print("Features used in training:")
@@ -172,15 +241,7 @@ class DraftBasedPredictor:
                 max_iter=300,
                 random_state=42
             ),
-            #  "Stacking": StackingClassifier(
-            #     estimators=[
-            #         ('rf', RandomForestClassifier(n_estimators=100, random_state=42)),
-            #         ('xgb', xgb.XGBClassifier(n_estimators=100, random_state=42)),
-            #         ('mlp', MLPClassifier(hidden_layer_sizes=(128, 64), activation='relu', solver='adam', alpha=0.001, learning_rate='adaptive', max_iter=300, random_state=42))
-            #     ],
-            #     final_estimator=LogisticRegression(),
-            #     cv=5
-            # ),
+             
             "RandomForest": RandomForestClassifier(
                 n_estimators=200,
                 max_depth=6,
@@ -195,6 +256,7 @@ class DraftBasedPredictor:
                 ('classifier', model)
             ]) for name, model in models.items()
         }
+       
         
         # Train and evaluate each model
         print("=== Initial Model Evaluation ===")
@@ -202,58 +264,43 @@ class DraftBasedPredictor:
         for name, pipeline in pipelines.items():
             print(f"\nTraining {name}...")
             pipeline.fit(X_train, y_train)
-            y_pred = pipeline.predict(X_test)
-            accuracy = accuracy_score(y_test, y_pred)
+            
+            # Evaluate on training set
+            y_train_pred = pipeline.predict(X_train)
+            train_accuracy = accuracy_score(y_train, y_train_pred)
+            
+            # Evaluate on test set
+            y_test_pred = pipeline.predict(X_test)
+            test_accuracy = accuracy_score(y_test, y_test_pred)
+            
             results[name] = {
                 'pipeline': pipeline,
-                'accuracy': accuracy
+                'train_accuracy': train_accuracy,
+                'test_accuracy': test_accuracy
             }
-            print(f"{name} Accuracy: {accuracy:.4f}")
-            print("\nClassification Report:")
-            print(classification_report(y_test, y_pred))
             
-            # Vẽ biểu đồ đánh giá overfitting
+            print(f"\n{name} Results:")
+            print(f"Training Accuracy: {train_accuracy:.4f}")
+            print("\nTraining Classification Report:")
+            print(classification_report(y_train, y_train_pred))
+            
+            print(f"\nTest Accuracy: {test_accuracy:.4f}")
+            print("\nTest Classification Report:")
+            print(classification_report(y_test, y_test_pred))
+            
+            # Learning curves
             train_sizes, train_scores, test_scores = learning_curve(
                 pipeline, self.X, self.y, cv=5, scoring='accuracy',
                 n_jobs=-1, train_sizes=np.linspace(0.1, 1.0, 10))
-            train_mean = np.mean(train_scores, axis=1)
-            train_std = np.std(train_scores, axis=1)
-            test_mean = np.mean(test_scores, axis=1)
-            test_std = np.std(test_scores, axis=1)
-            
-            plt.figure()
-            plt.plot(train_sizes, train_mean, 'o-', color="r",
-                     label="Training score")
-            plt.plot(train_sizes, test_mean, 'o-', color="g",
-                     label="Cross-validation score")
-            plt.fill_between(train_sizes, train_mean - train_std,
-                             train_mean + train_std, alpha=0.1, color="r")
-            plt.fill_between(train_sizes, test_mean - test_std,
-                             test_mean + test_std, alpha=0.1, color="g")
-            plt.title(f'Learning Curve for {name}')
-            plt.xlabel('Training Size')
-            plt.ylabel('Accuracy Score')
-            plt.legend(loc="best")
-            plt.grid()
-            plt.show()
+            # Plot learning curves
+            self._plot_learning_curves(name, train_sizes, train_scores, test_scores)
+                
             
         # Find best model
-        best_model_name = max(results.items(), key=lambda x: x[1]['accuracy'])[0]
+        best_model_name = max(results.items(), key=lambda x: x[1]['test_accuracy'])[0]
         print(f"\nBest performing model: {best_model_name}")
         
-        # def create_stacking_model():
-        #     estimators = [
-        #         ('rf',RandomForestClassifier())
-        #         ('xgb',xgb.XGBClassifier())
-        #         ('mlp',MLPClassifier())
-        #     ]
-            
-        #     stacking=StackingClassifier(
-        #         estimators=estimators,
-        #         final_estimator=LogisticRegression(),
-        #         cv=5
-        #     )
-        #     return stacking
+        
         
         # Define hyperparameter grids for each model
         param_grids = {
@@ -286,18 +333,7 @@ class DraftBasedPredictor:
                 'classifier__min_samples_split': [2, 5, 10],
                 'classifier__min_samples_leaf': [1, 2, 4],
                 'classifier__max_features': ['sqrt', 'log2']
-            },
-            # "Stacking": {
-            #     'classifier__rf__n_estimators': [100, 200],
-            #     'classifier__rf__max_depth': [4, 6],
-            #     'classifier__xgb__n_estimators': [100, 200],
-            #     'classifier__xgb__max_depth': [4, 6],
-            #     'classifier__mlp__hidden_layer_sizes': [(128, 64), (64, 32)],
-            #     'classifier__mlp__activation': ['relu', 'tanh'],
-            #     'classifier__mlp__alpha': [0.0001, 0.001],
-            #     'classifier__mlp__learning_rate_init': [0.001, 0.01],
-            #     'classifier__final_estimator__C': [0.1, 1.0]
-            # }
+            }
         }
         
         # Fine-tune best model
@@ -330,7 +366,9 @@ class DraftBasedPredictor:
         
         # Plot feature importance for the best model
         self._plot_feature_importance()
-        
+        self.plot_correlation_heatmap('overall_performance')
+        self.plot_correlation_heatmap('economy')
+        self.plot_correlation_heatmap('farm')
         # Thêm vào sau phần "Initial Model Evaluation"
         print("\n=== K-fold Cross Validation Results ===")
         for name, pipeline in pipelines.items():
@@ -349,6 +387,8 @@ class DraftBasedPredictor:
                 'feature': self.features,
                 'importance': self.model.named_steps['classifier'].feature_importances_
             }).sort_values('importance', ascending=False)
+            importance.to_csv("/kaggle/working/important_variable.csv")
+         
             
             plt.figure(figsize=(12, 6))
             sns.barplot(data=importance.head(15), x='importance', y='feature')
