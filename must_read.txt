@@ -1,0 +1,8 @@
+nhớ những điều sau khi mún chạy model:
+1. model có sẵn best model òi nên mún chạy thì mở cái notebook DS102, xuống gần cuối có cái code predictor= joblib.load j đó, 
+chạy cái đoá trở xuống, ko cần lưu lại ở cuối cùng
+2. ở hàm calculate_team_champion_stats, phía trên có đọc file. Có 2 file LCK csv là 1 cái đã bỏ 1 số thuộc tính (đọc trong báo
+cáo để biết bỏ j) là LCK2 và chưa bỏ mấy thuộc tính đó là LCK1. tụi m mún train lại thì nhớ chọn lại file này.
+3. nếu tụi m máy yếu thì lên kaggle, copy toàn bộ code ở file predictor_new.py vào 1 cell, và copy từ phần B của file notebook DS102
+vào 1 cell khác (hoặc các cell như file notebook cx dc). Lưu ý, khi lên kaggle nhớ đổi lại link input và output vì tụi m phải
+import thủ công input.

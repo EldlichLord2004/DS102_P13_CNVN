@@ -216,8 +216,8 @@ class DraftBasedPredictor:
             random_state=42, 
             stratify=self.y
         )
-        X_train.to_csv("/kaggle/working/training_set.csv")
-        X_test.to_csv("/kaggle/working//testing_set.csv")
+        X_train.to_csv("../Data/training_set.csv")
+        X_test.to_csv("../Data/testing_set.csv")
         
         print(f"Training features shape: {self.X.shape}")  # In ra để kiểm tra
         print("Features used in training:")
@@ -336,46 +336,51 @@ class DraftBasedPredictor:
             }
         }
         
-        # Fine-tune best model
-        print(f"\n=== Fine-tuning {best_model_name} ===")
-        grid_search = GridSearchCV(
-            pipelines[best_model_name],
-            param_grids[best_model_name],
-            cv=5,
-            n_jobs=-1,
-            verbose=2,
-            scoring='accuracy'
-        )
-        
-        grid_search.fit(X_train, y_train)
-        
-        # Print results
-        print("\nBest parameters found:")
-        print(grid_search.best_params_)
-        print(f"\nBest cross-validation accuracy: {grid_search.best_score_:.4f}")
-        
-        # Final evaluation on test set
-        y_pred = grid_search.predict(X_test)
-        print("\nFinal Model Performance on Test Set:")
-        print(f"Accuracy: {accuracy_score(y_test, y_pred):.4f}")
-        print("\nClassification Report:")
-        print(classification_report(y_test, y_pred))
-        
-        # Save the best model
-        self.model = grid_search.best_estimator_
-        
-        # Plot feature importance for the best model
-        self._plot_feature_importance()
-        self.plot_correlation_heatmap('overall_performance')
-        self.plot_correlation_heatmap('economy')
-        self.plot_correlation_heatmap('farm')
-        # Thêm vào sau phần "Initial Model Evaluation"
-        print("\n=== K-fold Cross Validation Results ===")
+        # Fine-tune all models
+        print("\n=== Fine-tuning All Models ===")
+        tuned_models = {}
         for name, pipeline in pipelines.items():
-            cv_scores = cross_val_score(pipeline, self.X, self.y, cv=5, scoring='accuracy')
-            print(f"\n{name}:")
-            print(f"Mean CV Accuracy: {cv_scores.mean():.4f} (+/- {cv_scores.std() * 2:.4f})")
-            print(f"Individual fold scores: {cv_scores}")
+            print(f"\nFine-tuning {name}...")
+            grid_search = GridSearchCV(
+                pipeline,
+                param_grids[name],
+                cv=5,
+                n_jobs=-1,
+                verbose=2,
+                scoring='accuracy'
+            )
+            grid_search.fit(X_train, y_train)
+            tuned_models[name] = grid_search.best_estimator_
+            print(f"Best parameters for {name}: {grid_search.best_params_}")
+            print(f"Best cross-validation accuracy for {name}: {grid_search.best_score_:.4f}")
+
+        # Evaluate all tuned models on the test set and compare with initial results
+        print("\n=== Evaluating All Tuned Models ===")
+        accuracies_before = {name: results[name]['test_accuracy'] for name in models.keys()}
+        accuracies_after = {}
+        for name, model in tuned_models.items():
+            y_pred = model.predict(X_test)
+            accuracy = accuracy_score(y_test, y_pred)
+            accuracies_after[name] = accuracy
+            print(f"\n{name} Test Accuracy after Tuning: {accuracy:.4f}")
+
+        # Plot comparison of accuracies before and after tuning
+        plt.figure(figsize=(10, 5))
+        bar_width = 0.35
+        index = np.arange(len(models))
+        plt.bar(index, accuracies_before.values(), bar_width, label='Before Tuning')
+        plt.bar(index + bar_width, accuracies_after.values(), bar_width, label='After Tuning')
+        plt.xlabel('Models')
+        plt.ylabel('Accuracy')
+        plt.title('Model Accuracies Before and After Fine Tuning')
+        plt.xticks(index + bar_width / 2, models.keys())
+        plt.legend()
+        plt.tight_layout()
+        plt.show()
+        
+        best_model_name = max(accuracies_after.items(), key=lambda x: x[1])[0]
+        best_model = tuned_models[best_model_name]
+        
         
         return self.model
 
@@ -387,7 +392,7 @@ class DraftBasedPredictor:
                 'feature': self.features,
                 'importance': self.model.named_steps['classifier'].feature_importances_
             }).sort_values('importance', ascending=False)
-            importance.to_csv("/kaggle/working/important_variable.csv")
+            importance.to_csv("../Data/important_variable.csv")
          
             
             plt.figure(figsize=(12, 6))

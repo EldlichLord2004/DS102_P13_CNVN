@@ -30,7 +30,7 @@ def load_predictor():
 @st.cache_data
 def load_champion_list():
     """Load and cache the list of available champions"""
-    df = pd.read_csv("../Data/processed_for_prediction.csv")
+    df = pd.read_csv("../Data/LCK_Tournament.csv")
     champions = sorted(list(set(
         df['pick1'].unique().tolist() +
         df['pick2'].unique().tolist() +
